@@ -1,12 +1,17 @@
-import { useState } from 'react';
-import { BINGO_MISSIONS } from './data'; // ★データを読み込む
+import { useState } from 'react'; // ★useEffectは使わないので削除
 
-const Bingo = () => {
-  // 初期値としてデータを読み込む
-  const [missions, setMissions] = useState(BINGO_MISSIONS);
+const Bingo = ({ missions }) => {
+  // ★useEffectを使わず、ここで直接初期化する
+  // (画面が開かれた瞬間に1回だけ実行されます)
+  const [gameMissions, setGameMissions] = useState(() => {
+    return missions.map(m => ({
+      ...m,
+      checked: false // ゲーム開始時は常にチェックなし
+    }));
+  });
 
   const toggleCheck = (id) => {
-    setMissions(missions.map(mission => 
+    setGameMissions(gameMissions.map(mission => 
       mission.id === id ? { ...mission, checked: !mission.checked } : mission
     ));
   };
@@ -23,7 +28,7 @@ const Bingo = () => {
         maxWidth: '350px',
         margin: '20px auto'
       }}>
-        {missions.map((mission) => (
+        {gameMissions.map((mission) => (
           <div
             key={mission.id}
             onClick={() => toggleCheck(mission.id)}
@@ -41,7 +46,8 @@ const Bingo = () => {
               fontWeight: 'bold',
               cursor: 'pointer',
               userSelect: 'none',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              wordBreak: 'break-word'
             }}
           >
             {mission.checked ? "OK!" : mission.text}

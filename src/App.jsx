@@ -1,9 +1,14 @@
+import { useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import TalkTheme from './games/TalkTheme';
 import Bingo from './games/Bingo';
-import Layout from './components/Layout'; // ★作成したLayoutをインポート
+import Layout from './components/Layout';
+import Settings from './components/Settings'; // 新しく作った設定画面
 
-// 🏠 トップページの中身
+// 初期データ
+import { THEME_LIST } from './games/TalkTheme/data';
+import { BINGO_MISSIONS } from './games/Bingo/data';
+
 function Home() {
   return (
     <div style={{ textAlign: 'center', width: '100%' }}>
@@ -17,12 +22,15 @@ function Home() {
         <Link to="/bingo" style={buttonStyle}>
           🎯 共通点ビンゴ
         </Link>
+        {/* 設定ボタンを追加 */}
+        <Link to="/settings" style={{...buttonStyle, backgroundColor: '#666', color: '#fff'}}>
+          pV 設定・編集
+        </Link>
       </div>
     </div>
   );
 }
 
-// 🎨 ボタンの見た目（共通）
 const buttonStyle = {
   display: 'block',
   padding: '20px',
@@ -34,30 +42,59 @@ const buttonStyle = {
   boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
 };
 
-// 🚀 アプリ全体の構成
 function App() {
+  // データの状態管理（ローカルストレージから読み込む、なければ初期値）
+  const [themes, setThemes] = useState(() => {
+    const saved = localStorage.getItem('icebreak_themes');
+    return saved ?JSON.parse(saved) : THEME_LIST;
+  });
+
+  const [bingoMissions, setBingoMissions] = useState(() => {
+    const saved = localStorage.getItem('icebreak_bingo');
+    return saved ? JSON.parse(saved) : BINGO_MISSIONS;
+  });
+
+  // データが変更されたらローカルストレージに保存
+  useEffect(() => {
+    localStorage.setItem('icebreak_themes', JSON.stringify(themes));
+  }, [themes]);
+
+  useEffect(() => {
+    localStorage.setItem('icebreak_bingo', JSON.stringify(bingoMissions));
+  }, [bingoMissions]);
+
   return (
-    // スマホ向けに幅を制限しつつ、アプリ全体を中央寄せ
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', backgroundColor: '#fff' }}>
       <Routes>
-        {/* トップページ：戻るボタンを表示しない設定 */}
         <Route path="/" element={
           <Layout title="メニュー" showBackBtn={false}>
             <Home />
           </Layout>
         } />
         
-        {/* ガチャのページ：戻るボタンあり（デフォルト） */}
         <Route path="/talk-theme" element={
           <Layout title="トークテーマガチャ">
-            <TalkTheme />
+            {/* データを渡す */}
+            <TalkTheme themes={themes} />
           </Layout>
         } />
 
-        {/* ビンゴのページ：戻るボタンあり（デフォルト） */}
         <Route path="/bingo" element={
           <Layout title="共通点ビンゴ">
-            <Bingo />
+            {/* データを渡す */}
+            <Bingo missions={bingoMissions} />
+          </Layout>
+        } />
+
+        {/* 設定画面のルート */}
+        <Route path="/settings" element={
+          <Layout title="設定">
+            <Settings 
+              themes={themes} 
+              setThemes={setThemes}
+              bingoMissions={bingoMissions}
+              setBingoMissions={setBingoMissions}
+            />
           </Layout>
         } />
       </Routes>

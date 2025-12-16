@@ -1,18 +1,26 @@
 import { useState } from 'react';
-import { THEME_LIST } from './data';
+// import { THEME_LIST } from './data'; // 不要になったので削除
 
-const TalkTheme = () => {
+// propsとして themes を受け取る
+const TalkTheme = ({ themes }) => {
   const [theme, setTheme] = useState("ボタンを押してね！");
   const [isSpinning, setIsSpinning] = useState(false);
 
   const spinGacha = () => {
     if (isSpinning) return;
+    // テーマが空の場合のガード
+    if (!themes || themes.length === 0) {
+      setTheme("テーマを追加してください！");
+      return;
+    }
+
     setIsSpinning(true);
 
     let count = 0;
     const intervalId = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * THEME_LIST.length);
-      setTheme(THEME_LIST[randomIndex]);
+      // THEME_LIST ではなく props の themes を使う
+      const randomIndex = Math.floor(Math.random() * themes.length);
+      setTheme(themes[randomIndex]);
       count++;
 
       if (count > 20) {
@@ -33,15 +41,15 @@ const TalkTheme = () => {
         borderRadius: '15px',
         backgroundColor: '#fff',
         color: '#333',
-        minHeight: '150px',      /* ★高さを少し広げました */
-        width: '90%',            /* ★横幅を親要素の90%に固定 */
-        maxWidth: '400px',       /* ★ただし広がりすぎないように最大幅を設定 */
+        minHeight: '150px',
+        width: '90%',
+        maxWidth: '400px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '1.5rem',      /* ★文字を大きくしました (1.2rem -> 1.5rem) */
+        fontSize: '1.5rem',
         fontWeight: 'bold',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)' /* 少し影をつけてリッチに */
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
       }}>
         {theme}
       </div>

@@ -1,11 +1,12 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import TalkTheme from './games/TalkTheme';
 import Bingo from './games/Bingo';
+import Layout from './components/Layout'; // ★作成したLayoutをインポート
 
-// 🏠 トップページ（メニュー画面）の部品
+// 🏠 トップページの中身
 function Home() {
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
+    <div style={{ textAlign: 'center', width: '100%' }}>
       <h1>🧊 Icebreak Cafe</h1>
       <p>アイスブレイクへようこそ！<br/>遊びたいゲームを選んでね。</p>
       
@@ -36,25 +37,28 @@ const buttonStyle = {
 // 🚀 アプリ全体の構成
 function App() {
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh' }}>
+    // スマホ向けに幅を制限しつつ、アプリ全体を中央寄せ
+    <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', backgroundColor: '#fff' }}>
       <Routes>
-        {/* トップページ */}
-        <Route path="/" element={<Home />} />
+        {/* トップページ：戻るボタンを表示しない設定 */}
+        <Route path="/" element={
+          <Layout title="メニュー" showBackBtn={false}>
+            <Home />
+          </Layout>
+        } />
         
-        {/* ガチャのページ（戻るボタン付き） */}
+        {/* ガチャのページ：戻るボタンあり（デフォルト） */}
         <Route path="/talk-theme" element={
-          <div>
-            <Link to="/" style={{ display: 'inline-block', margin: '10px' }}>&lt; 戻る</Link>
+          <Layout title="トークテーマガチャ">
             <TalkTheme />
-          </div>
+          </Layout>
         } />
 
-        {/* ビンゴのページ（戻るボタン付き） */}
+        {/* ビンゴのページ：戻るボタンあり（デフォルト） */}
         <Route path="/bingo" element={
-          <div>
-            <Link to="/" style={{ display: 'inline-block', margin: '10px' }}>&lt; 戻る</Link>
+          <Layout title="共通点ビンゴ">
             <Bingo />
-          </div>
+          </Layout>
         } />
       </Routes>
     </div>

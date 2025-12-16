@@ -1,5 +1,4 @@
 import { useState } from 'react';
-// import { THEME_LIST } from './data'; // 不要になったので削除
 
 // propsとして themes を受け取る
 const TalkTheme = ({ themes }) => {
@@ -18,7 +17,6 @@ const TalkTheme = ({ themes }) => {
 
     let count = 0;
     const intervalId = setInterval(() => {
-      // THEME_LIST ではなく props の themes を使う
       const randomIndex = Math.floor(Math.random() * themes.length);
       setTheme(themes[randomIndex]);
       count++;
@@ -41,15 +39,20 @@ const TalkTheme = ({ themes }) => {
         borderRadius: '15px',
         backgroundColor: '#fff',
         color: '#333',
-        minHeight: '150px',
-        width: '90%',
-        maxWidth: '400px',
+        
+        /* ★ここから：サイズ固定の設定 */
+        minHeight: '150px',      /* 高さは最低150px */
+        width: '320px',          /* 横幅は320pxで固定しようとする */
+        maxWidth: '90%',         /* ただし画面が狭いときは画面の90%に収める */
+        /* ★ここまで */
+
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '1.5rem',
         fontWeight: 'bold',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+        wordBreak: 'break-word'  /* 長い単語でも折り返す */
       }}>
         {theme}
       </div>

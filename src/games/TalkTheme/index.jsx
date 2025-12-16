@@ -1,49 +1,65 @@
 import { useState } from 'react';
+import { THEME_LIST } from './data'; // ★さっき作ったデータを読み込む
 
-const THEMES = [
-  "最近買った一番高いものは？",
-  "子供の頃の将来の夢は？",
-  "自分へのご褒美といえば？",
-  "実は苦手な食べ物は？",
-  "今一番行きたい旅行先は？",
-  "最近「ついてないな」と思ったこと",
-  "おすすめのスマホアプリは？",
-  "学生のうちにやっておきたいことは？",
-];
+const TalkTheme = () => {
+  const [theme, setTheme] = useState("ボタンを押してね！");
+  const [isSpinning, setIsSpinning] = useState(false);
 
-export default function TalkThemeGame() {
-  const [theme, setTheme] = useState("スタートボタンを押してね");
-  const [isAnimating, setIsAnimating] = useState(false);
+  const spinGacha = () => {
+    if (isSpinning) return;
+    setIsSpinning(true);
 
-  const handleGacha = () => {
-    setIsAnimating(true);
     let count = 0;
-    const interval = setInterval(() => {
-      setTheme(THEMES[Math.floor(Math.random() * THEMES.length)]);
+    // ルーレット演出
+    const intervalId = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * THEME_LIST.length);
+      setTheme(THEME_LIST[randomIndex]);
       count++;
-      if (count > 10) {
-        clearInterval(interval);
-        setIsAnimating(false);
+
+      if (count > 20) {
+        clearInterval(intervalId);
+        setIsSpinning(false);
       }
-    }, 50);
+    }, 100);
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+    <div style={{ textAlign: 'center', padding: '20px' }}>
+      <h2>💬 トークテーマガチャ</h2>
+      
       <div style={{
-        minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.5rem', fontWeight: 'bold', background: '#fff', borderRadius: '20px',
-        padding: '20px', margin: '40px 0', boxShadow: '0 8px 20px rgba(0,0,0,0.1)', color: '#4a4a4a'
+        margin: '20px auto',
+        padding: '30px',
+        border: '4px solid #4CAF50',
+        borderRadius: '15px',
+        backgroundColor: '#fff',
+        minHeight: '100px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '1.2rem',
+        fontWeight: 'bold'
       }}>
         {theme}
       </div>
-      <button onClick={handleGacha} disabled={isAnimating} style={{
-        background: '#d4a373', color: '#fff', border: 'none', padding: '15px 50px',
-        fontSize: '1.2rem', borderRadius: '50px', cursor: isAnimating ? 'wait' : 'pointer',
-        opacity: isAnimating ? 0.7 : 1, boxShadow: '0 4px 10px rgba(212, 163, 115, 0.4)'
-      }}>
-        {isAnimating ? '抽選中...' : '話題をチェンジ'}
+
+      <button 
+        onClick={spinGacha} 
+        disabled={isSpinning}
+        style={{
+          padding: '15px 40px',
+          fontSize: '1.1rem',
+          backgroundColor: isSpinning ? '#ccc' : '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '30px',
+          cursor: isSpinning ? 'default' : 'pointer',
+        }}
+      >
+        {isSpinning ? "抽選中..." : "ガチャを回す！"}
       </button>
     </div>
   );
-}
+};
+
+export default TalkTheme;

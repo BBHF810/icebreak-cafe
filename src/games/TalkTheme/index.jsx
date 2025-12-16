@@ -32,7 +32,8 @@ const TalkTheme = () => {
         padding: '30px',
         border: '4px solid #4CAF50',
         borderRadius: '15px',
-        backgroundColor: '#fff',
+        backgroundColor: '#fff', // 背景は白
+        color: '#333',           // ★ここを追加！ (文字を黒っぽい色にする)
         minHeight: '100px',
         display: 'flex',
         alignItems: 'center',

@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import TalkTheme from './games/TalkTheme';
 import Bingo from './games/Bingo';
+import ValueTalk from './games/ValueTalk'; // ★追加
 import Layout from './components/Layout';
-import Settings from './components/Settings'; // 新しく作った設定画面
+import Settings from './components/Settings';
 
 // 初期データ
 import { THEME_LIST } from './games/TalkTheme/data';
 import { BINGO_MISSIONS } from './games/Bingo/data';
+import { VALUE_THEME_LIST } from './games/ValueTalk/data'; // ★追加
 
 function Home() {
   return (
@@ -19,12 +21,14 @@ function Home() {
         <Link to="/talk-theme" style={buttonStyle}>
           💬 トークテーマガチャ
         </Link>
+        <Link to="/value-talk" style={buttonStyle}>
+          🃏 価値観トーク
+        </Link>
         <Link to="/bingo" style={buttonStyle}>
           🎯 共通点ビンゴ
         </Link>
-        {/* 設定ボタンを追加 */}
         <Link to="/settings" style={{...buttonStyle, backgroundColor: '#666', color: '#fff'}}>
-          pV 設定・編集
+          ⚙ 設定・編集
         </Link>
       </div>
     </div>
@@ -43,10 +47,10 @@ const buttonStyle = {
 };
 
 function App() {
-  // データの状態管理（ローカルストレージから読み込む、なければ初期値）
+  // データの状態管理
   const [themes, setThemes] = useState(() => {
     const saved = localStorage.getItem('icebreak_themes');
-    return saved ?JSON.parse(saved) : THEME_LIST;
+    return saved ? JSON.parse(saved) : THEME_LIST;
   });
 
   const [bingoMissions, setBingoMissions] = useState(() => {
@@ -54,14 +58,17 @@ function App() {
     return saved ? JSON.parse(saved) : BINGO_MISSIONS;
   });
 
-  // データが変更されたらローカルストレージに保存
-  useEffect(() => {
-    localStorage.setItem('icebreak_themes', JSON.stringify(themes));
-  }, [themes]);
+  // ★追加: 価値観トーク用のデータ
+  const [valueThemes, setValueThemes] = useState(() => {
+    const saved = localStorage.getItem('icebreak_value_themes');
+    return saved ? JSON.parse(saved) : VALUE_THEME_LIST;
+  });
 
-  useEffect(() => {
-    localStorage.setItem('icebreak_bingo', JSON.stringify(bingoMissions));
-  }, [bingoMissions]);
+  // データ保存
+  useEffect(() => { localStorage.setItem('icebreak_themes', JSON.stringify(themes)); }, [themes]);
+  useEffect(() => { localStorage.setItem('icebreak_bingo', JSON.stringify(bingoMissions)); }, [bingoMissions]);
+  // ★追加
+  useEffect(() => { localStorage.setItem('icebreak_value_themes', JSON.stringify(valueThemes)); }, [valueThemes]);
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', backgroundColor: '#fff' }}>
@@ -74,19 +81,23 @@ function App() {
         
         <Route path="/talk-theme" element={
           <Layout title="トークテーマガチャ">
-            {/* データを渡す */}
             <TalkTheme themes={themes} />
+          </Layout>
+        } />
+
+        {/* ★追加 */}
+        <Route path="/value-talk" element={
+          <Layout title="価値観トーク">
+            <ValueTalk themes={valueThemes} />
           </Layout>
         } />
 
         <Route path="/bingo" element={
           <Layout title="共通点ビンゴ">
-            {/* データを渡す */}
             <Bingo missions={bingoMissions} />
           </Layout>
         } />
 
-        {/* 設定画面のルート */}
         <Route path="/settings" element={
           <Layout title="設定">
             <Settings 
@@ -94,6 +105,9 @@ function App() {
               setThemes={setThemes}
               bingoMissions={bingoMissions}
               setBingoMissions={setBingoMissions}
+              // ★追加
+              valueThemes={valueThemes}
+              setValueThemes={setValueThemes}
             />
           </Layout>
         } />

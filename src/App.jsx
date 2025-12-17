@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import TalkTheme from './games/TalkTheme';
 import Bingo from './games/Bingo';
-import ValueTalk from './games/ValueTalk'; // ★追加
+import ValueTalk from './games/ValueTalk';
+import About from './components/About'; // ★追加: Aboutコンポーネントをインポート
 import Layout from './components/Layout';
 import Settings from './components/Settings';
 
-// 初期データ
 import { THEME_LIST } from './games/TalkTheme/data';
 import { BINGO_MISSIONS } from './games/Bingo/data';
-import { VALUE_THEME_LIST } from './games/ValueTalk/data'; // ★追加
+import { VALUE_THEME_LIST } from './games/ValueTalk/data';
 
 function Home() {
   return (
@@ -27,6 +27,12 @@ function Home() {
         <Link to="/bingo" style={buttonStyle}>
           🎯 共通点ビンゴ
         </Link>
+        
+        {/* ★追加: Uni-Port紹介ページへのボタン */}
+        <Link to="/about" style={{...buttonStyle, backgroundColor: '#e3f2fd', color: '#0d47a1', border: '2px solid #bbdefb'}}>
+          ⚓ Uni-Portについて
+        </Link>
+
         <Link to="/settings" style={{...buttonStyle, backgroundColor: '#666', color: '#fff'}}>
           ⚙ 設定・編集
         </Link>
@@ -47,7 +53,6 @@ const buttonStyle = {
 };
 
 function App() {
-  // データの状態管理
   const [themes, setThemes] = useState(() => {
     const saved = localStorage.getItem('icebreak_themes');
     return saved ? JSON.parse(saved) : THEME_LIST;
@@ -58,16 +63,13 @@ function App() {
     return saved ? JSON.parse(saved) : BINGO_MISSIONS;
   });
 
-  // ★追加: 価値観トーク用のデータ
   const [valueThemes, setValueThemes] = useState(() => {
     const saved = localStorage.getItem('icebreak_value_themes');
     return saved ? JSON.parse(saved) : VALUE_THEME_LIST;
   });
 
-  // データ保存
   useEffect(() => { localStorage.setItem('icebreak_themes', JSON.stringify(themes)); }, [themes]);
   useEffect(() => { localStorage.setItem('icebreak_bingo', JSON.stringify(bingoMissions)); }, [bingoMissions]);
-  // ★追加
   useEffect(() => { localStorage.setItem('icebreak_value_themes', JSON.stringify(valueThemes)); }, [valueThemes]);
 
   return (
@@ -85,7 +87,6 @@ function App() {
           </Layout>
         } />
 
-        {/* ★追加 */}
         <Route path="/value-talk" element={
           <Layout title="価値観トーク">
             <ValueTalk themes={valueThemes} />
@@ -98,6 +99,13 @@ function App() {
           </Layout>
         } />
 
+        {/* ★追加: 紹介ページのルート設定 */}
+        <Route path="/about" element={
+          <Layout title="Uni-Portについて">
+            <About />
+          </Layout>
+        } />
+
         <Route path="/settings" element={
           <Layout title="設定">
             <Settings 
@@ -105,7 +113,6 @@ function App() {
               setThemes={setThemes}
               bingoMissions={bingoMissions}
               setBingoMissions={setBingoMissions}
-              // ★追加
               valueThemes={valueThemes}
               setValueThemes={setValueThemes}
             />

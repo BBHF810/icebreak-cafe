@@ -41,18 +41,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* --- Our Style --- */}
-      <section style={{ ...sectionStyle, backgroundColor: '#f0f8ff', padding: '20px', borderRadius: '12px' }}>
-        <h3 style={headingStyle}>💻 UniPortの強み</h3>
-        <p style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: '15px' }}>
-          「想いはアナログに、運営はスマートに」
-        </p>
-        <p>
-          学生団体でありながら、ITツール（Notion等）を活用した効率的なチーム運営を行っています。
-          事務作業を効率化して生まれた時間を、お客様との会話や子どもたちと向き合う時間に最大限に使っています。
-        </p>
-      </section>
-
       {/* --- Footer / Link --- */}
       <div style={{ textAlign: 'center', marginTop: '40px', padding: '20px', borderTop: '1px solid #eee' }}>
         <p style={{ fontWeight: 'bold' }}>＼ 活動の様子を発信中！ ／</p>

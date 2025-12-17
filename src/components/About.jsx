@@ -45,7 +45,7 @@ const About = () => {
       <div style={{ textAlign: 'center', marginTop: '40px', padding: '20px', borderTop: '1px solid #eee' }}>
         <p style={{ fontWeight: 'bold' }}>＼ 活動の様子を発信中！ ／</p>
         <a 
-          href="https://teams.microsoft.com/l/message/48:notes/1765959282688?context=%7B%22contextType%22%3A%22chat%22%2C%22oid%22%3A%228%3Aorgid%3A4db19484-9195-4d4a-9211-aef037c6ef6e%22%7D" 
+          href="https://www.instagram.com/uni_port_ibaraki?igsh=MXZtdDRuZTh0bDRiaA%3D%3D&utm_source=qr" 
           target="_blank" 
           rel="noopener noreferrer"
           style={instagramButtonStyle}

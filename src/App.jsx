@@ -65,7 +65,15 @@ function App() {
   const deleteFeedback = (id) => {
     if (window.confirm("このメッセージを削除してもよろしいですか？")) {
       const feedbackRef = ref(db, `feedbacks/${id}`);
-      remove(feedbackRef);
+      
+      remove(feedbackRef)
+        .then(() => {
+          console.log("削除成功！");
+        })
+        .catch((error) => {
+          // エラーが出たらアラートで表示する
+          alert("削除に失敗しました: " + error.message);
+        });
     }
   };
 

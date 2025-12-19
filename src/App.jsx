@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import { db } from './firebase'; // ★追加
-import { ref, onValue, push } from 'firebase/database'; // ★追加
+import { db } from './firebase'; 
+import { ref, onValue, push, remove } from 'firebase/database'; // removeを追加
+
 import TalkTheme from './games/TalkTheme';
 import Bingo from './games/Bingo';
 import ValueTalk from './games/ValueTalk';
@@ -9,27 +10,39 @@ import Feedback from './games/Feedback';
 import Layout from './components/Layout';
 import Settings from './components/Settings';
 
-// 初期データ（THEME_LIST, BINGO_MISSIONS, VALUE_THEME_LIST は以前のまま）
 import { THEME_LIST } from './games/TalkTheme/data';
 import { BINGO_MISSIONS } from './games/Bingo/data';
 import { VALUE_THEME_LIST } from './games/ValueTalk/data';
 
+function Home() {
+  return (
+    <div style={{ textAlign: 'center', width: '100%' }}>
+      <h1>🧊 Icebreak Cafe</h1>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '30px' }}>
+        <Link to="/talk-theme" style={buttonStyle}>💬 トークテーマガチャ</Link>
+        <Link to="/value-talk" style={buttonStyle}>🃏 価値観トーク</Link>
+        <Link to="/bingo" style={buttonStyle}>🎯 共通点ビンゴ</Link>
+        <Link to="/feedback" style={{...buttonStyle, backgroundColor: '#8c7b75', color: '#fff'}}>📝 感想掲示板＆バトン</Link>
+        <Link to="/settings" style={{...buttonStyle, backgroundColor: '#666', color: '#fff'}}>⚙ 設定</Link>
+      </div>
+    </div>
+  );
+}
+
 function App() {
-  // ローカルストレージを使うデータ（テーマ設定など）
   const [themes, setThemes] = useState(() => JSON.parse(localStorage.getItem('icebreak_themes')) || THEME_LIST);
   const [bingoMissions, setBingoMissions] = useState(() => JSON.parse(localStorage.getItem('icebreak_bingo')) || BINGO_MISSIONS);
   const [valueThemes, setValueThemes] = useState(() => JSON.parse(localStorage.getItem('icebreak_value_themes')) || VALUE_THEME_LIST);
 
-  // ★ Firebaseで管理するデータ（感想）
+  // Firebaseで管理する感想データ
   const [feedbacks, setFeedbacks] = useState([]);
 
-  // ★ 追加: Firebaseからリアルタイムに読み込む処理
+  // Firebaseからリアルタイムに読み込む
   useEffect(() => {
     const feedbacksRef = ref(db, 'feedbacks');
     const unsubscribe = onValue(feedbacksRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Firebaseのオブジェクト形式を配列に変換
         const feedbackList = Object.keys(data).map(key => ({
           id: key,
           ...data[key]
@@ -39,16 +52,23 @@ function App() {
         setFeedbacks([]);
       }
     });
-    return () => unsubscribe(); // 画面を閉じるときに接続を切る
+    return () => unsubscribe();
   }, []);
 
-  // ★ 追加: Firebaseに保存する処理
+  // Firebaseに投稿を追加
   const addFeedback = (entry) => {
     const feedbacksRef = ref(db, 'feedbacks');
     push(feedbacksRef, entry);
   };
 
-  // ローカル設定の保存（useEffectはそのまま）
+  // ★ 追加: Firebaseのデータを削除
+  const deleteFeedback = (id) => {
+    if (window.confirm("このメッセージを削除してもよろしいですか？")) {
+      const feedbackRef = ref(db, `feedbacks/${id}`);
+      remove(feedbackRef);
+    }
+  };
+
   useEffect(() => { localStorage.setItem('icebreak_themes', JSON.stringify(themes)); }, [themes]);
   useEffect(() => { localStorage.setItem('icebreak_bingo', JSON.stringify(bingoMissions)); }, [bingoMissions]);
   useEffect(() => { localStorage.setItem('icebreak_value_themes', JSON.stringify(valueThemes)); }, [valueThemes]);
@@ -62,8 +82,11 @@ function App() {
         <Route path="/bingo" element={<Layout title="ビンゴ"><Bingo missions={bingoMissions} /></Layout>} />
         <Route path="/feedback" element={
           <Layout title="感想掲示板">
-            {/* リアルタイム掲示板へ */}
-            <Feedback feedbacks={feedbacks} onAddFeedback={addFeedback} />
+            <Feedback 
+              feedbacks={feedbacks} 
+              onAddFeedback={addFeedback} 
+              onDeleteFeedback={deleteFeedback} // 削除関数を渡す
+            />
           </Layout>
         } />
         <Route path="/settings" element={
@@ -72,22 +95,6 @@ function App() {
           </Layout>
         } />
       </Routes>
-    </div>
-  );
-}
-
-// Homeコンポーネントは以前作成した「感想ボタン」があるものを使ってください
-function Home() {
-  return (
-    <div style={{ textAlign: 'center', width: '100%' }}>
-      <h1>🧊 Icebreak Cafe</h1>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '30px' }}>
-        <Link to="/talk-theme" style={buttonStyle}>💬 トークテーマガチャ</Link>
-        <Link to="/value-talk" style={buttonStyle}>🃏 価値観トーク</Link>
-        <Link to="/bingo" style={buttonStyle}>🎯 共通点ビンゴ</Link>
-        <Link to="/feedback" style={{...buttonStyle, backgroundColor: '#8c7b75', color: '#fff'}}>📝 感想掲示板＆バトン</Link>
-        <Link to="/settings" style={{...buttonStyle, backgroundColor: '#666', color: '#fff'}}>⚙ 設定</Link>
-      </div>
     </div>
   );
 }

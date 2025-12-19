@@ -67,7 +67,14 @@ const ValueTalk = ({ themes }) => {
               fontSize: isNumberVisible ? '3rem' : '1rem',
               fontWeight: 'bold',
               cursor: 'pointer',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+              boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+              
+              /* ★ここから追加：確実に中央寄せするための設定 */
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 0 // buttonのデフォルトの余白が悪さをしないようにリセット
+              /* ★ここまで */
             }}
           >
             {isNumberVisible ? number : "???"}

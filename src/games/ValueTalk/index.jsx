@@ -53,7 +53,13 @@ const ValueTalk = ({ themes }) => {
 
       {/* 数字表示エリア */}
       {number !== null && (
-        <div style={{ marginBottom: '30px' }}>
+        <div style={{ 
+          marginBottom: '30px', 
+          display: 'flex',           /* ★追加：中身をFlex配置にする */
+          flexDirection: 'column',    /* ★追加：縦に並べる */
+          alignItems: 'center',       /* ★追加：横方向の中央に寄せる */
+          width: '100%'               /* ★追加：幅をいっぱいまで広げる */
+        }}>
           <p style={{fontSize: '0.9rem', color: '#666'}}>あなたの数字（タップで表示/非表示）</p>
           <button 
             onClick={() => setIsNumberVisible(!isNumberVisible)}
@@ -68,13 +74,11 @@ const ValueTalk = ({ themes }) => {
               fontWeight: 'bold',
               cursor: 'pointer',
               boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-              
-              /* ★ここから追加：確実に中央寄せするための設定 */
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              padding: 0 // buttonのデフォルトの余白が悪さをしないようにリセット
-              /* ★ここまで */
+              padding: 0,
+              margin: '0 auto'        /* ★念のため：外側の余白を均等にする */
             }}
           >
             {isNumberVisible ? number : "???"}

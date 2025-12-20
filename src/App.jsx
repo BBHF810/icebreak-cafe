@@ -15,20 +15,27 @@ import { BINGO_MISSIONS } from './games/Bingo/data';
 import { VALUE_THEME_LIST } from './games/ValueTalk/data';
 
 function App() {
-  // --- トークテーマの状態管理 (オブジェクト形式への変換付き) ---
+  // トークテーマの状態管理
   const [themes, setThemes] = useState(() => {
     const saved = localStorage.getItem('icebreak_themes');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // 古い文字列配列だった場合、または形式が違う場合にオブジェクト形式に変換
       return parsed.map(t => typeof t === 'string' ? { text: t, enabled: true } : t);
     }
-    // 初期データもオブジェクト形式に変換
     return THEME_LIST.map(t => ({ text: t, enabled: true }));
   });
 
+  // 価値観トークの状態管理 ★オブジェクト形式に対応
+  const [valueThemes, setValueThemes] = useState(() => {
+    const saved = localStorage.getItem('icebreak_value_themes');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map(v => typeof v === 'string' ? { text: v, enabled: true } : v);
+    }
+    return VALUE_THEME_LIST.map(v => ({ text: v, enabled: true }));
+  });
+
   const [bingoMissions, setBingoMissions] = useState(() => JSON.parse(localStorage.getItem('icebreak_bingo')) || BINGO_MISSIONS);
-  const [valueThemes, setValueThemes] = useState(() => JSON.parse(localStorage.getItem('icebreak_value_themes')) || VALUE_THEME_LIST);
   const [feedbacks, setFeedbacks] = useState([]);
 
   useEffect(() => {
@@ -52,7 +59,6 @@ function App() {
     }
   };
 
-  // ローカル保存
   useEffect(() => { localStorage.setItem('icebreak_themes', JSON.stringify(themes)); }, [themes]);
   useEffect(() => { localStorage.setItem('icebreak_bingo', JSON.stringify(bingoMissions)); }, [bingoMissions]);
   useEffect(() => { localStorage.setItem('icebreak_value_themes', JSON.stringify(valueThemes)); }, [valueThemes]);
@@ -63,17 +69,23 @@ function App() {
         <Route path="/" element={<Layout title="メニュー" showBackBtn={false}><Home /></Layout>} />
         <Route path="/talk-theme" element={
           <Layout title="ガチャ">
-            <TalkTheme 
-              key={themes.filter(t => t.enabled).length} 
-              themes={themes} 
-              setThemes={setThemes} // ★ setThemesを追加
-            />
+            <TalkTheme key={themes.filter(t => t.enabled).length} themes={themes} setThemes={setThemes} />
           </Layout>
         } />
-        <Route path="/value-talk" element={<Layout title="価値観トーク"><ValueTalk themes={valueThemes} /></Layout>} />
+        <Route path="/value-talk" element={
+          <Layout title="価値観トーク">
+            <ValueTalk key={valueThemes.filter(v => v.enabled).length} themes={valueThemes} setValueThemes={setValueThemes} />
+          </Layout>
+        } />
         <Route path="/bingo" element={<Layout title="ビンゴ"><Bingo missions={bingoMissions} /></Layout>} />
         <Route path="/feedback" element={<Layout title="感想掲示板"><Feedback feedbacks={feedbacks} onAddFeedback={addFeedback} onDeleteFeedback={deleteFeedback} /></Layout>} />
-        <Route path="/settings" element={<Layout title="設定"><Settings themes={themes} setThemes={setThemes} bingoMissions={bingoMissions} setBingoMissions={setBingoMissions} valueThemes={valueThemes} setValueThemes={setValueThemes} /></Layout>} />
+        <Route path="/settings" element={
+          <Settings 
+            themes={themes} setThemes={setThemes} 
+            bingoMissions={bingoMissions} setBingoMissions={setBingoMissions} 
+            valueThemes={valueThemes} setValueThemes={setValueThemes} 
+          />
+        } />
       </Routes>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { db } from './firebase'; 
-import { ref, onValue, push, remove } from 'firebase/database';
+import { ref, onValue, set, push, remove } from 'firebase/database'; // setを追加
 
 import TalkTheme from './games/TalkTheme';
 import Bingo from './games/Bingo';
@@ -10,58 +10,81 @@ import Feedback from './games/Feedback';
 import Layout from './components/Layout';
 import Settings from './components/Settings';
 
-import { THEME_LIST } from './games/TalkTheme/data';
-import { BINGO_MISSIONS } from './games/Bingo/data';
-import { VALUE_THEME_LIST } from './games/ValueTalk/data';
+import { THEME_LIST } from './games/TalkTheme/data'; //
+import { BINGO_MISSIONS } from './games/Bingo/data'; //
+import { VALUE_THEME_LIST } from './games/ValueTalk/data'; //
 
 function App() {
-  // トークテーマの状態管理
-  const [themes, setThemes] = useState(() => {
-    const saved = localStorage.getItem('icebreak_themes');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map(t => typeof t === 'string' ? { text: t, enabled: true } : t);
-    }
-    return THEME_LIST.map(t => ({ text: t, enabled: true }));
-  });
-
-  // 価値観トークの状態管理 ★オブジェクト形式に対応
-  const [valueThemes, setValueThemes] = useState(() => {
-    const saved = localStorage.getItem('icebreak_value_themes');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map(v => typeof v === 'string' ? { text: v, enabled: true } : v);
-    }
-    return VALUE_THEME_LIST.map(v => ({ text: v, enabled: true }));
-  });
-
-  const [bingoMissions, setBingoMissions] = useState(() => JSON.parse(localStorage.getItem('icebreak_bingo')) || BINGO_MISSIONS);
+  const [themes, setThemes] = useState([]);
+  const [bingoMissions, setBingoMissions] = useState([]);
+  const [valueThemes, setValueThemes] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
 
+  // --- Firebase 同期処理 ---
+
   useEffect(() => {
-    const feedbacksRef = ref(db, 'feedbacks');
-    const unsubscribe = onValue(feedbacksRef, (snapshot) => {
+    // 1. トークテーマの同期
+    const themesRef = ref(db, 'themes');
+    onValue(themesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const feedbackList = Object.keys(data).map(key => ({ ...data[key], id: key }));
-        setFeedbacks(feedbackList);
+        setThemes(data);
+      } else {
+        // DBが空なら初期データをセット
+        const initial = THEME_LIST.map(t => ({ text: t, enabled: true }));
+        set(themesRef, initial);
+      }
+    });
+
+    // 2. ビンゴミッションの同期
+    const bingoRef = ref(db, 'bingo');
+    onValue(bingoRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setBingoMissions(data);
+      } else {
+        set(bingoRef, BINGO_MISSIONS);
+      }
+    });
+
+    // 3. 価値観トークの同期
+    const valueRef = ref(db, 'valueThemes');
+    onValue(valueRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setValueThemes(data);
+      } else {
+        const initial = VALUE_THEME_LIST.map(v => ({ text: v, enabled: true }));
+        set(valueRef, initial);
+      }
+    });
+
+    // 4. 感想掲示板の同期 (既存)
+    const feedbacksRef = ref(db, 'feedbacks');
+    const unsubscribeFeedback = onValue(feedbacksRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setFeedbacks(Object.keys(data).map(key => ({ ...data[key], id: key })));
       } else {
         setFeedbacks([]);
       }
     });
-    return () => unsubscribe();
+
+    return () => unsubscribeFeedback();
   }, []);
 
-  const addFeedback = (entry) => { push(ref(db, 'feedbacks'), entry); };
+  // --- データ更新関数 (Firebaseへ書き込む) ---
+
+  const updateThemes = (newData) => set(ref(db, 'themes'), newData);
+  const updateBingo = (newData) => set(ref(db, 'bingo'), newData);
+  const updateValueThemes = (newData) => set(ref(db, 'valueThemes'), newData);
+
+  const addFeedback = (entry) => push(ref(db, 'feedbacks'), entry);
   const deleteFeedback = (id) => {
     if (window.confirm("このメッセージを削除してもよろしいですか？")) {
       remove(ref(db, `feedbacks/${id}`));
     }
   };
-
-  useEffect(() => { localStorage.setItem('icebreak_themes', JSON.stringify(themes)); }, [themes]);
-  useEffect(() => { localStorage.setItem('icebreak_bingo', JSON.stringify(bingoMissions)); }, [bingoMissions]);
-  useEffect(() => { localStorage.setItem('icebreak_value_themes', JSON.stringify(valueThemes)); }, [valueThemes]);
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', backgroundColor: '#fff' }}>
@@ -72,7 +95,7 @@ function App() {
             <TalkTheme 
               key={themes.filter(t => t.enabled).length} 
               themes={themes} 
-              setThemes={setThemes} // これを渡すことで「非表示」ボタンが動きます
+              setThemes={updateThemes} 
             />
           </Layout>
         } />
@@ -81,7 +104,7 @@ function App() {
             <ValueTalk 
               key={valueThemes.filter(v => v.enabled).length} 
               themes={valueThemes} 
-              setValueThemes={setValueThemes} // これを渡すことで「非表示」ボタンが動きます
+              setValueThemes={updateValueThemes} 
             />
           </Layout>
         } />
@@ -89,9 +112,9 @@ function App() {
         <Route path="/feedback" element={<Layout title="感想掲示板"><Feedback feedbacks={feedbacks} onAddFeedback={addFeedback} onDeleteFeedback={deleteFeedback} /></Layout>} />
         <Route path="/settings" element={
           <Settings 
-            themes={themes} setThemes={setThemes} 
-            bingoMissions={bingoMissions} setBingoMissions={setBingoMissions} 
-            valueThemes={valueThemes} setValueThemes={setValueThemes} 
+            themes={themes} setThemes={updateThemes} 
+            bingoMissions={bingoMissions} setBingoMissions={updateBingo} 
+            valueThemes={valueThemes} setValueThemes={updateValueThemes} 
           />
         } />
       </Routes>

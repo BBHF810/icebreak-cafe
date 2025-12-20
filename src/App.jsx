@@ -61,7 +61,15 @@ function App() {
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '100vh', backgroundColor: '#fff' }}>
       <Routes>
         <Route path="/" element={<Layout title="メニュー" showBackBtn={false}><Home /></Layout>} />
-        <Route path="/talk-theme" element={<Layout title="ガチャ"><TalkTheme key={themes.filter(t => t.enabled).length} themes={themes} /></Layout>} />
+        <Route path="/talk-theme" element={
+          <Layout title="ガチャ">
+            <TalkTheme 
+              key={themes.filter(t => t.enabled).length} 
+              themes={themes} 
+              setThemes={setThemes} // ★ setThemesを追加
+            />
+          </Layout>
+        } />
         <Route path="/value-talk" element={<Layout title="価値観トーク"><ValueTalk themes={valueThemes} /></Layout>} />
         <Route path="/bingo" element={<Layout title="ビンゴ"><Bingo missions={bingoMissions} /></Layout>} />
         <Route path="/feedback" element={<Layout title="感想掲示板"><Feedback feedbacks={feedbacks} onAddFeedback={addFeedback} onDeleteFeedback={deleteFeedback} /></Layout>} />

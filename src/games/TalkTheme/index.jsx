@@ -1,6 +1,6 @@
-import { useState} from 'react';
+import { useState } from 'react';
 
-const TalkTheme = ({ themes }) => {
+const TalkTheme = ({ themes, setThemes }) => {
   const [currentTheme, setCurrentTheme] = useState("ボタンを押してね");
   const [remainingIndices, setRemainingIndices] = useState([]);
 
@@ -20,15 +20,26 @@ const TalkTheme = ({ themes }) => {
       indices = activeThemes.map((_, i) => i);
     }
 
-    // 残りのリストからランダムに1つ選ぶ
     const randomIndex = Math.floor(Math.random() * indices.length);
     const themeIndex = indices[randomIndex];
     
     setCurrentTheme(activeThemes[themeIndex].text);
 
-    // 選ばれたものを残りリストから削除
     indices.splice(randomIndex, 1);
     setRemainingIndices(indices);
+  };
+
+  // ★ 追加：現在表示されているお題を非表示にする
+  const hideTheme = () => {
+    if (currentTheme === "ボタンを押してね" || activeThemes.length === 0) return;
+    
+    if (window.confirm("このお題を今後表示しないようにしますか？（設定画面で戻せます）")) {
+      const updatedThemes = themes.map(t => 
+        t.text === currentTheme ? { ...t, enabled: false } : t
+      );
+      setThemes(updatedThemes);
+      // App.jsxのkeyのおかげで、再マウントされ表示がリセットされます
+    }
   };
 
   return (
@@ -37,20 +48,27 @@ const TalkTheme = ({ themes }) => {
         {currentTheme}
       </div>
       
-      <button onClick={drawTheme} style={gachaButtonStyle}>
-        ガチャを回す
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
+        <button onClick={drawTheme} style={gachaButtonStyle}>
+          ガチャを回す
+        </button>
+
+        {/* ★ 追加：非表示ボタン */}
+        {currentTheme !== "ボタンを押してね" && (
+          <button onClick={hideTheme} style={hideButtonStyle}>
+            × このお題を非表示にする
+          </button>
+        )}
+      </div>
 
       <div style={{ marginTop: '20px', color: '#999', fontSize: '0.9rem' }}>
         残りお題: {remainingIndices.length === 0 && currentTheme !== "ボタンを押してね" ? 0 : remainingIndices.length} / {activeThemes.length}
-        {remainingIndices.length === 0 && currentTheme !== "ボタンを押してね" && (
-          <p style={{ color: '#8c7b75', fontSize: '0.8rem' }}>※次で全てのお題がリセットされます</p>
-        )}
       </div>
     </div>
   );
 };
 
+// --- スタイル ---
 const themeCardStyle = {
   minHeight: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center',
   background: '#fff', borderRadius: '25px', padding: '30px', marginBottom: '30px',
@@ -61,7 +79,12 @@ const themeCardStyle = {
 const gachaButtonStyle = {
   padding: '18px 50px', fontSize: '1.2rem', background: '#8c7b75', color: '#fff',
   border: 'none', borderRadius: '35px', cursor: 'pointer', fontWeight: 'bold',
-  boxShadow: '0 5px 15px rgba(140, 123, 117, 0.3)', transition: 'transform 0.1s'
+  boxShadow: '0 5px 15px rgba(140, 123, 117, 0.3)'
+};
+
+const hideButtonStyle = {
+  background: 'none', border: 'none', color: '#8c7b75', 
+  fontSize: '0.9rem', cursor: 'pointer', textDecoration: 'underline'
 };
 
 export default TalkTheme;

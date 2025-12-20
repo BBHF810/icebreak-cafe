@@ -1,106 +1,85 @@
 import { useState } from 'react';
 
-// propsに valueThemes, setValueThemes を追加
-export default function Settings({ themes, setThemes, bingoMissions, setBingoMissions, valueThemes, setValueThemes }) {
+const Settings = ({ themes, setThemes }) => {
   const [newTheme, setNewTheme] = useState("");
-  const [newMission, setNewMission] = useState("");
-  const [newValueTheme, setNewValueTheme] = useState(""); // 価値観トーク用
 
-  // --- 既存の関数 ---
   const addTheme = () => {
-    if (newTheme.trim() === "") return;
-    setThemes([...themes, newTheme]);
+    if (!newTheme.trim()) return;
+    setThemes([...themes, { text: newTheme, enabled: true }]);
     setNewTheme("");
   };
-  const removeTheme = (index) => {
-    const newThemes = [...themes];
-    newThemes.splice(index, 1);
-    setThemes(newThemes);
-  };
-  const addMission = () => {
-    if (newMission.trim() === "") return;
-    const newItem = { id: Date.now(), text: newMission, checked: false };
-    setBingoMissions([...bingoMissions, newItem]);
-    setNewMission("");
-  };
-  const removeMission = (id) => {
-    setBingoMissions(bingoMissions.filter(m => m.id !== id));
+
+  const toggleTheme = (index) => {
+    const updated = [...themes];
+    updated[index].enabled = !updated[index].enabled;
+    setThemes(updated);
   };
 
-  // --- ★追加: 価値観トーク用の関数 ---
-  const addValueTheme = () => {
-    if (newValueTheme.trim() === "") return;
-    setValueThemes([...valueThemes, newValueTheme]);
-    setNewValueTheme("");
-  };
-  const removeValueTheme = (index) => {
-    const newThemes = [...valueThemes];
-    newThemes.splice(index, 1);
-    setValueThemes(newThemes);
+  const deleteTheme = (index) => {
+    if (window.confirm("削除してもよろしいですか？")) {
+      setThemes(themes.filter((_, i) => i !== index));
+    }
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '500px' }}>
-      {/* 既存: トークテーマ編集 */}
-      <div style={sectionStyle}>
-        <h3>💬 トークテーマ編集</h3>
-        <div style={inputGroupStyle}>
-          <input value={newTheme} onChange={(e) => setNewTheme(e.target.value)} placeholder="新しいテーマ" style={inputStyle} />
+    <div style={{ padding: '20px' }}>
+      <section style={{ marginBottom: '30px' }}>
+        <h3 style={{ borderLeft: '4px solid #8c7b75', paddingLeft: '10px', marginBottom: '15px' }}>
+          トークテーマの管理
+        </h3>
+        
+        {/* 新規追加フォーム */}
+        <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
+          <input 
+            value={newTheme}
+            onChange={(e) => setNewTheme(e.target.value)}
+            placeholder="新しいお題を入力..."
+            style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #ddd' }}
+          />
           <button onClick={addTheme} style={addButtonStyle}>追加</button>
         </div>
-        <ul style={listStyle}>
+
+        {/* お題一覧（スクロール可能） */}
+        <div style={{ maxHeight: '400px', overflowY: 'auto', background: '#fdfdfd', borderRadius: '12px', border: '1px solid #eee' }}>
           {themes.map((theme, index) => (
-            <li key={index} style={itemStyle}>
-              <span>{theme}</span>
-              <button onClick={() => removeTheme(index)} style={deleteButtonStyle}>削除</button>
-            </li>
+            <div key={index} style={{ 
+              display: 'flex', alignItems: 'center', padding: '12px', 
+              borderBottom: '1px solid #f5f5f5',
+              opacity: theme.enabled ? 1 : 0.5 
+            }}>
+              <input 
+                type="checkbox" 
+                checked={theme.enabled} 
+                onChange={() => toggleTheme(index)}
+                style={{ width: '20px', height: '20px', marginRight: '12px', cursor: 'pointer' }}
+              />
+              <span style={{ 
+                flex: 1, 
+                fontSize: '0.95rem',
+                textDecoration: theme.enabled ? 'none' : 'line-through' 
+              }}>
+                {theme.text}
+              </span>
+              <button 
+                onClick={() => deleteTheme(index)} 
+                style={{ background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', padding: '5px' }}
+              >
+                削除
+              </button>
+            </div>
           ))}
-        </ul>
-      </div>
-
-      {/* ★追加: 価値観トーク編集 */}
-      <div style={sectionStyle}>
-        <h3>🃏 価値観トーク編集</h3>
-        <p style={{fontSize: '0.8rem', color: '#666'}}>※「強い動物」「高い買い物」など順位をつけられるお題がおすすめ</p>
-        <div style={inputGroupStyle}>
-          <input value={newValueTheme} onChange={(e) => setNewValueTheme(e.target.value)} placeholder="新しいお題" style={inputStyle} />
-          <button onClick={addValueTheme} style={addButtonStyle}>追加</button>
         </div>
-        <ul style={listStyle}>
-          {valueThemes.map((theme, index) => (
-            <li key={index} style={itemStyle}>
-              <span>{theme}</span>
-              <button onClick={() => removeValueTheme(index)} style={deleteButtonStyle}>削除</button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      </section>
 
-      {/* 既存: ビンゴ編集 */}
-      <div style={sectionStyle}>
-        <h3>🎯 ビンゴ編集 (現在 {bingoMissions.length}個)</h3>
-        <div style={inputGroupStyle}>
-          <input value={newMission} onChange={(e) => setNewMission(e.target.value)} placeholder="新しいミッション" style={inputStyle} />
-          <button onClick={addMission} style={addButtonStyle}>追加</button>
-        </div>
-        <ul style={listStyle}>
-          {bingoMissions.map((mission) => (
-            <li key={mission.id} style={itemStyle}>
-              <span>{mission.text}</span>
-              <button onClick={() => removeMission(mission.id)} style={deleteButtonStyle}>削除</button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <p style={{ fontSize: '0.8rem', color: '#999', textAlign: 'center' }}>
+        ※設定はブラウザに保存されます
+      </p>
     </div>
   );
-}
+};
 
-// スタイル（変更なし）
-const sectionStyle = { marginBottom: '40px', textAlign: 'left' };
-const inputGroupStyle = { display: 'flex', gap: '10px', marginBottom: '15px' };
-const inputStyle = { flex: 1, padding: '8px', fontSize: '1rem', border: '1px solid #ccc', borderRadius: '4px' };
-const addButtonStyle = { backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', padding: '8px 16px' };
-const listStyle = { listStyle: 'none', padding: 0, margin: 0 };
-const itemStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #eee' };
-const deleteButtonStyle = { backgroundColor: '#ff4444', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '0.8rem', marginLeft: '10px' };
+const addButtonStyle = {
+  padding: '0 20px', background: '#8c7b75', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold'
+};
+
+export default Settings;

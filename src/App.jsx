@@ -43,10 +43,15 @@ function App() {
     const unsubscribe = onValue(feedbacksRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const feedbackList = Object.keys(data).map(key => ({
-          id: key,
-          ...data[key]
-        }));
+        const feedbackList = Object.keys(data).map(key => {
+          // ★ 修正ポイント
+          // Firebaseの自動生成キー(key)を確実にIDとして使うために、
+          // スプレッド構文の後ろに id: key を書きます（これで確実に上書きします）
+          return {
+            ...data[key],
+            id: key 
+          };
+        });
         setFeedbacks(feedbackList);
       } else {
         setFeedbacks([]);
@@ -63,17 +68,14 @@ function App() {
 
   // ★ 追加: Firebaseのデータを削除
   const deleteFeedback = (id) => {
+    // 診断用：削除しようとしているパスをログに出す
+    console.log("削除対象のパス:", `feedbacks/${id}`);
+    
     if (window.confirm("このメッセージを削除してもよろしいですか？")) {
       const feedbackRef = ref(db, `feedbacks/${id}`);
-      
       remove(feedbackRef)
-        .then(() => {
-          console.log("削除成功！");
-        })
-        .catch((error) => {
-          // エラーが出たらアラートで表示する
-          alert("削除に失敗しました: " + error.message);
-        });
+        .then(() => alert("削除完了の通信に成功しました。コンソールを確認してください。"))
+        .catch((error) => alert("通信エラー: " + error.message));
     }
   };
 

@@ -12,7 +12,6 @@ const ValueTalk = ({ themes, setValueThemes }) => {
       setThemeText("有効なテーマがありません。");
       return;
     }
-
     const randomIndex = Math.floor(Math.random() * activeThemes.length);
     setThemeText(activeThemes[randomIndex].text);
     setNumber(Math.floor(Math.random() * 100) + 1);
@@ -21,7 +20,7 @@ const ValueTalk = ({ themes, setValueThemes }) => {
 
   const hideCurrentTheme = () => {
     if (themeText === "お題を引いてね！") return;
-    if (window.confirm("このお題を非表示にしますか？")) {
+    if (window.confirm("このお題を非表示にしますか？（設定画面で戻せます）")) {
       const updated = themes.map(v => v.text === themeText ? { ...v, enabled: false } : v);
       setValueThemes(updated);
       setThemeText("お題を引いてね！");
@@ -36,10 +35,14 @@ const ValueTalk = ({ themes, setValueThemes }) => {
 
       {number !== null && (
         <div style={{ marginBottom: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <p style={{fontSize: '0.9rem', color: '#666'}}>あなたの数字（タップで表示）</p>
+          <p style={{fontSize: '0.9rem', color: '#666', marginBottom: '10px'}}>あなたの数字（タップで表示）</p>
           <button 
             onClick={() => setIsNumberVisible(!isNumberVisible)}
-            style={{...numberButtonStyle, backgroundColor: isNumberVisible ? '#333' : '#ddd', color: isNumberVisible ? '#fff' : '#333'}}
+            style={{
+              ...numberButtonStyle, 
+              backgroundColor: isNumberVisible ? '#333' : '#ddd', 
+              color: isNumberVisible ? '#fff' : '#333'
+            }}
           >
             {isNumberVisible ? number : "???"}
           </button>
@@ -56,14 +59,18 @@ const ValueTalk = ({ themes, setValueThemes }) => {
   );
 };
 
+// スタイル修正：中央揃えを確実に
 const cardDisplayStyle = {
   margin: '0 auto 20px', padding: '20px', border: '4px solid #FF9800', borderRadius: '15px',
-  backgroundColor: '#fff', color: '#333', width: '320px', maxWidth: '90%', minHeight: '100px',
+  backgroundColor: '#fff', color: '#333', width: '320px', maxWidth: '95%', minHeight: '100px',
   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', fontWeight: 'bold'
 };
 
 const numberButtonStyle = {
-  width: '100px', height: '100px', borderRadius: '50%', border: 'none', fontSize: '2.5rem', fontWeight: 'bold', cursor: 'pointer'
+  width: '120px', height: '120px', borderRadius: '50%', border: 'none', 
+  fontSize: '3rem', fontWeight: 'bold', cursor: 'pointer',
+  display: 'flex', justifyContent: 'center', alignItems: 'center', // 中央揃え
+  boxShadow: '0 4px 6px rgba(0,0,0,0.2)', padding: 0
 };
 
 const drawButtonStyle = {

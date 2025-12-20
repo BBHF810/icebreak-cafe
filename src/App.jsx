@@ -69,12 +69,20 @@ function App() {
         <Route path="/" element={<Layout title="メニュー" showBackBtn={false}><Home /></Layout>} />
         <Route path="/talk-theme" element={
           <Layout title="ガチャ">
-            <TalkTheme key={themes.filter(t => t.enabled).length} themes={themes} setThemes={setThemes} />
+            <TalkTheme 
+              key={themes.filter(t => t.enabled).length} 
+              themes={themes} 
+              setThemes={setThemes} // これを渡すことで「非表示」ボタンが動きます
+            />
           </Layout>
         } />
         <Route path="/value-talk" element={
           <Layout title="価値観トーク">
-            <ValueTalk key={valueThemes.filter(v => v.enabled).length} themes={valueThemes} setValueThemes={setValueThemes} />
+            <ValueTalk 
+              key={valueThemes.filter(v => v.enabled).length} 
+              themes={valueThemes} 
+              setValueThemes={setValueThemes} // これを渡すことで「非表示」ボタンが動きます
+            />
           </Layout>
         } />
         <Route path="/bingo" element={<Layout title="ビンゴ"><Bingo missions={bingoMissions} /></Layout>} />

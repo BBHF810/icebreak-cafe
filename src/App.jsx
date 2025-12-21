@@ -9,6 +9,7 @@ import ValueTalk from './games/ValueTalk';
 import Feedback from './games/Feedback';
 import Layout from './components/Layout';
 import Settings from './components/Settings';
+import About from './components/About'; // ★ 追加：UniPort説明ページ
 
 import { THEME_LIST } from './games/TalkTheme/data';
 import { BINGO_MISSIONS } from './games/Bingo/data';
@@ -20,8 +21,8 @@ function App() {
   const [valueThemes, setValueThemes] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
 
+  // Firebase同期ロジック
   useEffect(() => {
-    // Firebase同期ロジック (以前の修正を維持)
     onValue(ref(db, 'themes'), (snapshot) => {
       const data = snapshot.val();
       if (data) setThemes(data);
@@ -54,6 +55,14 @@ function App() {
     <div style={appContainerStyle}>
       <Routes>
         <Route path="/" element={<Layout title="メニュー" showBackBtn={false}><Home /></Layout>} />
+        
+        {/* ★ 追加：UniPort紹介ルート */}
+        <Route path="/about" element={
+          <Layout title="UniPortについて">
+            <About />
+          </Layout>
+        } />
+
         <Route path="/talk-theme" element={
           <Layout title="ガチャ">
             <TalkTheme key={themes.filter(t => t.enabled).length} themes={themes} setThemes={updateThemes} />
@@ -83,9 +92,9 @@ const appContainerStyle = {
   margin: '0 auto',
   minHeight: '100vh',
   backgroundColor: '#fff',
-  display: 'flex',          // 中央配置のため
+  display: 'flex',
   flexDirection: 'column',
-  padding: '0 15px',        // スマホ画面端の余白
+  padding: '0 15px',
   boxSizing: 'border-box'
 };
 
@@ -94,6 +103,10 @@ function Home() {
     <div style={{ textAlign: 'center', width: '100%', padding: '20px 0' }}>
       <h1 style={{ color: '#8c7b75', fontSize: '2rem', marginBottom: '30px' }}>🧊 Icebreak Cafe</h1>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        
+        {/* ★ 追加：UniPort紹介へのリンクボタン */}
+        <Link to="/about" style={{...homeButtonStyle, backgroundColor: '#e3f2fd', border: '1px solid #bbdefb'}}>⚓ UniPortについて</Link>
+        
         <Link to="/talk-theme" style={homeButtonStyle}>💬 トークテーマガチャ</Link>
         <Link to="/value-talk" style={homeButtonStyle}>🃏 価値観トーク</Link>
         <Link to="/bingo" style={homeButtonStyle}>🎯 共通点ビンゴ</Link>

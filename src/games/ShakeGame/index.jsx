@@ -79,7 +79,7 @@ const ShakeGame = () => {
       const acc = Math.abs(x) + Math.abs(y) + Math.abs(z);
       
       // 感度調整
-      if (!isShaking.current && acc > 20) {
+      if (!isShaking.current && acc > 10) {
         setCount((c) => c + 1);
         isShaking.current = true;
       } else if (isShaking.current && acc < 7) {

@@ -7,6 +7,7 @@ import TalkTheme from './games/TalkTheme';
 import Bingo from './games/Bingo';
 import ValueTalk from './games/ValueTalk';
 import Feedback from './games/Feedback';
+import ShakeGame from './games/ShakeGame';
 import Layout from './components/Layout';
 import Settings from './components/Settings';
 import About from './components/About'; // ★ 追加：UniPort説明ページ

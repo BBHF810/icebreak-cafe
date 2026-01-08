@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 
 const ShakeGame = () => {
-  const [count,jw] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(10); // 制限時間（秒）
+  // ★ 修正1: 正しい変数名 setCount に変更
+  const [count, setCount] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(10);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  const [permissionGranted, setPermissionGranted] = useState(false);
   
-  // センサーの値（前回の加速度を保存して差分をとる）
-  const prevAcc = useRef({ x: 0, y: 0, z: 0 });
-  const SHAKE_THRESHOLD = 15; // 振りの感度（調整可能）
+  // シェイク判定用のフラグ（連続カウント防止）
+  const isShaking = useRef(false);
 
   // iOS向けのセンサー許可リクエスト
   const requestPermission = async () => {
@@ -20,7 +19,6 @@ const ShakeGame = () => {
       try {
         const response = await DeviceMotionEvent.requestPermission();
         if (response === 'granted') {
-          setPermissionGranted(true);
           startGame();
         } else {
           alert('センサーの許可が必要です');
@@ -29,8 +27,6 @@ const ShakeGame = () => {
         console.error(e);
       }
     } else {
-      // AndroidやPCなど許可不要な場合
-      setPermissionGranted(true);
       startGame();
     }
   };
@@ -40,22 +36,27 @@ const ShakeGame = () => {
     setIsFinished(false);
     setCount(0);
     setTimeLeft(10);
-    prevAcc.current = { x: 0, y: 0, z: 0 };
+    isShaking.current = false;
   };
 
   // タイマー処理
   useEffect(() => {
     let timer;
-    if (isPlaying && timeLeft > 0) {
+    if (isPlaying) {
       timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setIsPlaying(false);
+            setIsFinished(true);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-    } else if (timeLeft === 0) {
-      setIsPlaying(false);
-      setIsFinished(true);
     }
     return () => clearInterval(timer);
-  }, [isPlaying, timeLeft]);
+  }, [isPlaying]);
 
   // シェイク検知処理
   useEffect(() => {
@@ -63,25 +64,28 @@ const ShakeGame = () => {
 
     const handleMotion = (event) => {
       const { x, y, z } = event.acceleration; // 重力を含まない加速度
-      if (!x || !y || !z) return;
+      
+      // ★ 修正2: 数値が0の場合も許容するように条件修正
+      if (x == null || y == null || z == null) return;
 
       const acc = Math.abs(x) + Math.abs(y) + Math.abs(z);
-      const prev = Math.abs(prevAcc.current.x) + Math.abs(prevAcc.current.y) + Math.abs(prevAcc.current.z);
       
-      // 変化量が閾値を超えたらカウント
-      if (Math.abs(acc - prev) > SHAKE_THRESHOLD) {
+      // ★ 修正3: シェイク判定ロジックの改善（シュミットトリガー方式）
+      // 閾値(15)を超えたらカウントし、閾値(5)を下回るまで次はカウントしない
+      if (!isShaking.current && acc > 15) {
         setCount((c) => c + 1);
+        isShaking.current = true;
+      } else if (isShaking.current && acc < 5) {
+        isShaking.current = false;
       }
-
-      prevAcc.current = { x, y, z };
     };
 
     window.addEventListener('devicemotion', handleMotion);
     return () => window.removeEventListener('devicemotion', handleMotion);
   }, [isPlaying]);
 
-  // スコアに応じた「炭酸の高さ」計算 (最大300回でMAXなど調整)
-  const sprayHeight = Math.min(count * 2, 100); 
+  // スコアに応じた「炭酸の高さ」計算 (最大100%まで)
+  const sprayHeight = Math.min(count * 3, 100); 
 
   return (
     <div style={{ textAlign: 'center', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -102,6 +106,7 @@ const ShakeGame = () => {
           <div>
             <h1 style={{ fontSize: '4rem', color: '#ff4d4d', margin: '0' }}>{timeLeft}</h1>
             <p style={{ fontWeight: 'bold' }}>スマホを振れ！！</p>
+            <p style={{ fontSize: '1.5rem' }}>Count: {count}</p>
           </div>
         )}
 
@@ -126,11 +131,10 @@ const ShakeGame = () => {
         alignItems: 'flex-end',
         justifyContent: 'center'
       }}>
-        {/* 噴き出す液体 */}
         <div style={{
           width: '60%',
           height: `${sprayHeight}%`,
-          backgroundColor: '#ffecb3', // ビールやサイダーっぽい色
+          backgroundColor: '#ffecb3',
           backgroundImage: 'linear-gradient(to top, #FFC107 0%, #fff 100%)',
           transition: 'height 0.1s linear',
           borderTopLeftRadius: '20px',
@@ -139,14 +143,12 @@ const ShakeGame = () => {
           position: 'relative',
           opacity: 0.8
         }}>
-           {/* 泡の表現（簡易的） */}
            <div style={{ position: 'absolute', top: '-10px', width: '100%', textAlign: 'center', fontSize: '2rem' }}>
              🫧
            </div>
         </div>
       </div>
 
-      {/* ボトルのイメージ（簡易アイコン） */}
       <div style={{ position: 'absolute', bottom: '10px', fontSize: '4rem', zIndex: 5 }}>
         🍾
       </div>

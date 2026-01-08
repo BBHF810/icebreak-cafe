@@ -82,7 +82,7 @@ const ShakeGame = () => {
       if (!isShaking.current && acc > 10) {
         setCount((c) => c + 1);
         isShaking.current = true;
-      } else if (isShaking.current && acc < 7) {
+      } else if (isShaking.current && acc < 3) {
         isShaking.current = false;
       }
     };

@@ -6,24 +6,19 @@ const ShakeGame = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   
-  // ★ 追加: アニメーション表示用のスコア
+  // 演出の状態管理: 'idle'(待機), 'buildup'(溜め), 'erupt'(噴出), 'done'(完了)
+  const [animationPhase, setAnimationPhase] = useState('idle');
   const [displayScore, setDisplayScore] = useState(0);
-  // ★ 追加: アニメーション制御用のref
+  
   const animationRef = useRef(null);
-  // ★ 追加: 最新のcountを保持するref（タイマー終了時に正しい値を取得するため）
   const latestCountRef = useRef(count);
-
-  // シェイク判定用のフラグ
   const isShaking = useRef(false);
 
-  // countが更新されたらrefも更新
   useEffect(() => {
     latestCountRef.current = count;
   }, [count]);
 
-  // iOS向けのセンサー許可リクエスト
   const requestPermission = async () => {
-    // ... (変更なし)
     if (
       typeof DeviceMotionEvent !== 'undefined' &&
       typeof DeviceMotionEvent.requestPermission === 'function'
@@ -44,20 +39,19 @@ const ShakeGame = () => {
   };
 
   const startGame = () => {
-    // アニメーションが動いていたら止める
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
     
     setIsPlaying(true);
     setIsFinished(false);
+    setAnimationPhase('idle');
     setCount(0);
-    setDisplayScore(0); // ★ 追加: 表示用スコアもリセット
+    setDisplayScore(0);
     setTimeLeft(10);
     isShaking.current = false;
   };
 
   // タイマー処理
   useEffect(() => {
-    // ... (変更なし)
     let timer;
     if (isPlaying) {
       timer = setInterval(() => {
@@ -75,9 +69,8 @@ const ShakeGame = () => {
     return () => clearInterval(timer);
   }, [isPlaying]);
 
-  // シェイク検知処理
+  // シェイク検知
   useEffect(() => {
-    // ... (変更なし)
     if (!isPlaying) return;
 
     const handleMotion = (event) => {
@@ -85,6 +78,7 @@ const ShakeGame = () => {
       if (x == null || y == null || z == null) return;
       const acc = Math.abs(x) + Math.abs(y) + Math.abs(z);
       
+      // 感度調整
       if (!isShaking.current && acc > 15) {
         setCount((c) => c + 1);
         isShaking.current = true;
@@ -97,50 +91,71 @@ const ShakeGame = () => {
     return () => window.removeEventListener('devicemotion', handleMotion);
   }, [isPlaying]);
 
-  // ★ 追加: 結果発表のアニメーション処理
+
+  // ★ 結果発表のアニメーションシーケンス制御
   useEffect(() => {
     if (isFinished) {
+      // 1. まず「溜め」フェーズへ。ジュースをリセット。
+      setAnimationPhase('buildup');
       setDisplayScore(0);
-      const targetScore = latestCountRef.current;
-      let currentScore = 0;
 
-      const animate = () => {
-        if (currentScore < targetScore) {
-          // 残りのスコアに応じて増加スピードを調整（演出）
-          const remaining = targetScore - currentScore;
-          let increment = 1;
-          if (remaining > 50) increment = 4;
-          else if (remaining > 20) increment = 2;
-          
-          currentScore += increment;
-          if (currentScore > targetScore) currentScore = targetScore; // 行き過ぎ防止
+      // 2. 1秒後に「噴出」開始
+      const timer = setTimeout(() => {
+        setAnimationPhase('erupt');
+        startScoreAnimation();
+      }, 1000);
 
-          setDisplayScore(currentScore);
-          animationRef.current = requestAnimationFrame(animate);
-        } else {
-          cancelAnimationFrame(animationRef.current);
-        }
-      };
-      animationRef.current = requestAnimationFrame(animate);
+      return () => clearTimeout(timer);
     }
-    
-    // クリーンアップ
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
   }, [isFinished]);
 
+  // スコアのカウントアップアニメーション
+  const startScoreAnimation = () => {
+    const targetScore = latestCountRef.current;
+    const startTime = Date.now();
+    const DURATION = 2500; // 2.5秒かけて伸びる
 
-  // ★ 変更: スコアに応じた「炭酸の高さ」計算
-  // プレイ中は count、終了後はアニメーションする displayScore を使う
-  const scoreForHeight = isFinished ? displayScore : count;
-  const sprayHeight = Math.min(scoreForHeight * 3, 100); 
+    const animate = () => {
+      const now = Date.now();
+      const progress = Math.min((now - startTime) / DURATION, 1);
+      
+      // イージング（最初は速く、最後はゆっくり: easeOutExpoっぽい動き）
+      // 1 - Math.pow(2, -10 * progress) を使うと勢いよく出てゆっくり止まる
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      
+      const currentScore = Math.floor(targetScore * ease);
+      setDisplayScore(currentScore);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        setAnimationPhase('done');
+      }
+    };
+    animationRef.current = requestAnimationFrame(animate);
+  };
+
+
+  // ★ ジュースの高さ計算ロジック
+  let sprayHeight = 0;
+  if (isPlaying) {
+    // プレイ中: リアルタイムに少し反応させる（最大でも画面半分くらいまで）
+    sprayHeight = Math.min(count * 1, 50); 
+  } else if (animationPhase === 'buildup') {
+    // 溜め: 一旦0にする（ボトルに戻る）
+    sprayHeight = 0;
+  } else if (animationPhase === 'erupt' || animationPhase === 'done') {
+    // 噴出・完了: アニメーション中のスコアを使って高さを決める（最大100%）
+    sprayHeight = Math.min(displayScore * 3, 100);
+  }
 
   return (
     <div style={{ textAlign: 'center', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
       
-      {/* ゲーム状態表示エリア */}
-      <div style={{ zIndex: 10, marginTop: '20px' }}>
+      {/* メインコンテンツエリア */}
+      <div style={{ zIndex: 10, marginTop: '20px', width: '100%' }}>
+        
+        {/* スタート画面 */}
         {!isPlaying && !isFinished && (
           <div>
             <h2 style={{ color: '#8c7b75', marginBottom: '20px' }}>🍾 シェイク！</h2>
@@ -151,24 +166,54 @@ const ShakeGame = () => {
           </div>
         )}
 
+        {/* プレイ中画面 */}
         {isPlaying && (
           <div>
             <h1 style={{ fontSize: '4rem', color: '#ff4d4d', margin: '0' }}>{timeLeft}</h1>
             <p style={{ fontWeight: 'bold' }}>スマホを振れ！！</p>
-            {/* プレイ中はリアルタイムのカウントを表示 */}
-            <p style={{ fontSize: '1.5rem' }}>Count: {count}</p>
+            <p style={{ fontSize: '1.5rem', opacity: 0.7 }}>Count: {count}</p>
           </div>
         )}
 
+        {/* 結果発表画面 */}
         {isFinished && (
-          <div style={{ background: 'rgba(255,255,255,0.9)', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ color: '#FF9800' }}>Time Up!</h2>
-            <p style={{ fontSize: '1.2rem', margin: '10px 0' }}>記録</p>
-            {/* ★ 変更: アニメーションする displayScore を表示 */}
-            <p style={{ fontSize: '3rem', fontWeight: 'bold', color: '#333' }}>
-              {displayScore} <span style={{fontSize: '1rem'}}>回</span>
-            </p>
-            <button onClick={startGame} style={{...startButtonStyle, marginTop: '10px', backgroundColor: '#8c7b75'}}>もう一回</button>
+          <div style={{ 
+            transition: 'opacity 0.5s', 
+            opacity: 1,
+            marginTop: '20px'
+          }}>
+            <h2 style={{ color: '#FF9800', fontSize: '2.5rem', margin: '0 0 20px 0', textShadow: '2px 2px 0 #fff' }}>Time Up!</h2>
+            
+            {/* スコア表示: 溜め(buildup)の間は隠し、噴出(erupt)から表示 */}
+            <div style={{ 
+              opacity: animationPhase === 'buildup' ? 0 : 1, 
+              transition: 'opacity 0.3s',
+              transform: animationPhase === 'buildup' ? 'scale(0.5)' : 'scale(1)',
+            }}>
+              <div style={{ 
+                background: 'rgba(255,255,255,0.9)', 
+                padding: '20px 40px', 
+                borderRadius: '20px', 
+                display: 'inline-block',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+              }}>
+                <p style={{ fontSize: '1.2rem', margin: '0', color: '#666' }}>記録</p>
+                <p style={{ fontSize: '4rem', fontWeight: 'bold', color: '#333', margin: '5px 0', lineHeight: 1 }}>
+                  {displayScore}
+                  <span style={{fontSize: '1.5rem', marginLeft: '5px'}}>回</span>
+                </p>
+              </div>
+              
+              {/* 完了後に「もう一回」ボタンを表示 */}
+              <div style={{ 
+                marginTop: '30px', 
+                opacity: animationPhase === 'done' ? 1 : 0, 
+                transition: 'opacity 0.5s',
+                pointerEvents: animationPhase === 'done' ? 'auto' : 'none'
+              }}>
+                <button onClick={startGame} style={{...startButtonStyle, backgroundColor: '#8c7b75'}}>もう一回</button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -182,40 +227,67 @@ const ShakeGame = () => {
         pointerEvents: 'none',
         display: 'flex',
         alignItems: 'flex-end',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        zIndex: 1
       }}>
         {/* 噴き出す液体 */}
         <div style={{
-          width: '60%',
-          // ★ 変更: scoreForHeight に基づいて高さが変わる
+          width: '70%', // 少し太くしました
           height: `${sprayHeight}%`,
           backgroundColor: '#ffecb3',
-          backgroundImage: 'linear-gradient(to top, #FFC107 0%, #fff 100%)',
-          // ★ 変更: アニメーション中は少し滑らかに動くようにtransitionを調整
-          transition: isFinished ? 'height 0.05s linear' : 'height 0.1s linear',
+          backgroundImage: 'linear-gradient(to top, #FFC107 0%, #fff 120%)',
+          // アニメーション制御: 溜め(buildup)の時はスッと戻る、噴出(erupt)の時は滑らかに
+          transition: animationPhase === 'buildup' ? 'height 0.3s ease-in' : (animationPhase === 'erupt' ? 'height 0.1s linear' : 'height 0.1s linear'),
           borderTopLeftRadius: '20px',
           borderTopRightRadius: '20px',
-          boxShadow: '0 0 20px rgba(255, 193, 7, 0.5)',
+          boxShadow: '0 0 30px rgba(255, 193, 7, 0.6)',
           position: 'relative',
-          opacity: 0.8
+          opacity: 0.9
         }}>
            {/* 泡の表現 */}
-           <div style={{ position: 'absolute', top: '-10px', width: '100%', textAlign: 'center', fontSize: '2rem' }}>
+           <div style={{ position: 'absolute', top: '-20px', width: '100%', textAlign: 'center', fontSize: '3rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
              🫧
            </div>
+           {/* 飛沫のエフェクト（装飾） */}
+           {animationPhase === 'erupt' && (
+             <>
+               <div style={{ position: 'absolute', top: '0', left: '-10px', fontSize: '2rem', animation: 'splash 0.5s infinite' }}>💧</div>
+               <div style={{ position: 'absolute', top: '10px', right: '-15px', fontSize: '1.5rem', animation: 'splash 0.7s infinite' }}>💧</div>
+             </>
+           )}
         </div>
       </div>
 
       {/* ボトルのイメージ */}
-      <div style={{ position: 'absolute', bottom: '10px', fontSize: '4rem', zIndex: 5 }}>
+      <div style={{ 
+        position: 'absolute', 
+        bottom: '10px', 
+        fontSize: '5rem', 
+        zIndex: 5,
+        // 噴出中はボトルを揺らす
+        animation: animationPhase === 'erupt' ? 'shake 0.1s infinite' : 'none'
+      }}>
         🍾
       </div>
+
+      {/* CSSアニメーション定義 */}
+      <style>{`
+        @keyframes splash {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-50px) scale(0); opacity: 0; }
+        }
+        @keyframes shake {
+          0% { transform: rotate(0deg); }
+          25% { transform: rotate(-5deg); }
+          75% { transform: rotate(5deg); }
+          100% { transform: rotate(0deg); }
+        }
+      `}</style>
     </div>
   );
 };
 
 const startButtonStyle = {
-  // ... (変更なし)
   padding: '15px 40px',
   fontSize: '1.2rem',
   background: '#FF9800',

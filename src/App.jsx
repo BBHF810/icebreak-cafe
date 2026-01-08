@@ -73,6 +73,13 @@ function App() {
             <ValueTalk key={valueThemes.filter(v => v.enabled).length} themes={valueThemes} setValueThemes={updateValueThemes} />
           </Layout>
         } />
+
+        <Route path="/shake-game" element={
+          <Layout title="シェイク！">
+            <ShakeGame />
+          </Layout>
+        } />
+
         <Route path="/bingo" element={<Layout title="ビンゴ"><Bingo missions={bingoMissions} /></Layout>} />
         <Route path="/feedback" element={
           <Layout title="感想掲示板">
@@ -110,6 +117,7 @@ function Home() {
         <Link to="/talk-theme" style={homeButtonStyle}>💬 トークテーマガチャ</Link>
         <Link to="/value-talk" style={homeButtonStyle}>🃏 価値観トーク</Link>
         <Link to="/bingo" style={homeButtonStyle}>🎯 共通点ビンゴ</Link>
+        <Link to="/shake-game" style={{...homeButtonStyle, backgroundColor: '#FFC107'}}>🍾 シェイクバトル</Link>
         <Link to="/feedback" style={{...homeButtonStyle, backgroundColor: '#8c7b75', color: '#fff'}}>📝 感想掲示板＆バトン</Link>
         <Link to="/settings" style={{...homeButtonStyle, backgroundColor: '#666', color: '#fff', fontSize: '0.9rem'}}>⚙ 設定</Link>
       </div>

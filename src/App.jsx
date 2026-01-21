@@ -124,6 +124,7 @@ function Home() {
         <Link to="/talk-theme" style={homeButtonStyle}>💬 トークテーマガチャ</Link>
         <Link to="/value-talk" style={homeButtonStyle}>🃏 価値観トーク</Link>
         <Link to="/bingo" style={homeButtonStyle}>🎯 共通点ビンゴ</Link>
+        <Link to="/pair-quiz" style={{...homeButtonStyle, backgroundColor: '#FF7043', color: '#fff'}}>🤝 ペアdeクイズ</Link>
         <Link to="/shake-game" style={{...homeButtonStyle, backgroundColor: '#FFC107'}}>🍾 シェイクバトル</Link>
         <Link to="/feedback" style={{...homeButtonStyle, backgroundColor: '#8c7b75', color: '#fff'}}>📝 感想掲示板＆バトン</Link>
         <Link to="/settings" style={{...homeButtonStyle, backgroundColor: '#666', color: '#fff', fontSize: '0.9rem'}}>⚙ 設定</Link>

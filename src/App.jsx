@@ -11,6 +11,7 @@ import ShakeGame from './games/ShakeGame';
 import Layout from './components/Layout';
 import Settings from './components/Settings';
 import About from './components/About'; // ★ 追加：UniPort説明ページ
+import PairQuiz from './games/PairQuiz';
 
 import { THEME_LIST } from './games/TalkTheme/data';
 import { BINGO_MISSIONS } from './games/Bingo/data';
@@ -90,6 +91,11 @@ function App() {
         <Route path="/settings" element={
           <Settings themes={themes} setThemes={updateThemes} bingoMissions={bingoMissions} setBingoMissions={updateBingo} valueThemes={valueThemes} setValueThemes={updateValueThemes} />
         } />
+        <Route path="/pair-quiz" element={
+            <Layout title="ペアdeクイズ">
+              <PairQuiz />
+            </Layout>
+        } />
       </Routes>
     </div>
   );
@@ -121,6 +127,7 @@ function Home() {
         <Link to="/shake-game" style={{...homeButtonStyle, backgroundColor: '#FFC107'}}>🍾 シェイクバトル</Link>
         <Link to="/feedback" style={{...homeButtonStyle, backgroundColor: '#8c7b75', color: '#fff'}}>📝 感想掲示板＆バトン</Link>
         <Link to="/settings" style={{...homeButtonStyle, backgroundColor: '#666', color: '#fff', fontSize: '0.9rem'}}>⚙ 設定</Link>
+        <Link to="/pair-quiz" style={{...homeButtonStyle, backgroundColor: '#FF7043', color: '#fff'}}>🤝 ペアdeクイズ</Link>
       </div>
     </div>
   );

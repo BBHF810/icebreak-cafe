@@ -12,6 +12,7 @@ import Layout from './components/Layout';
 import Settings from './components/Settings';
 import About from './components/About'; // ★ 追加：UniPort説明ページ
 import PairQuiz from './games/PairQuiz';
+import Shiritori from './games/Shiritori';
 
 import { THEME_LIST } from './games/TalkTheme/data';
 import { BINGO_MISSIONS } from './games/Bingo/data';
@@ -96,6 +97,11 @@ function App() {
               <PairQuiz />
             </Layout>
         } />
+        <Route path="/shiritori" element={
+          <Layout title="しりとりハント">
+            <Shiritori />
+          </Layout>
+        } />
       </Routes>
     </div>
   );
@@ -126,6 +132,7 @@ function Home() {
         <Link to="/bingo" style={homeButtonStyle}>🎯 共通点ビンゴ</Link>
         <Link to="/pair-quiz" style={{...homeButtonStyle, backgroundColor: '#FF7043', color: '#fff'}}>🤝 ペアdeクイズ</Link>
         <Link to="/shake-game" style={{...homeButtonStyle, backgroundColor: '#FFC107'}}>🍾 シェイクバトル</Link>
+        <Link to="/shiritori" style={{...homeButtonStyle, backgroundColor: '#81C784', color: '#fff'}}>🏃 しりとりハント</Link>
         <Link to="/feedback" style={{...homeButtonStyle, backgroundColor: '#8c7b75', color: '#fff'}}>📝 感想掲示板＆バトン</Link>
         <Link to="/settings" style={{...homeButtonStyle, backgroundColor: '#666', color: '#fff', fontSize: '0.9rem'}}>⚙ 設定</Link>
         <Link to="/pair-quiz" style={{...homeButtonStyle, backgroundColor: '#FF7043', color: '#fff'}}>🤝 ペアdeクイズ</Link>

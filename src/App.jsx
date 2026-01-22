@@ -135,7 +135,6 @@ function Home() {
         <Link to="/shiritori" style={{...homeButtonStyle, backgroundColor: '#81C784', color: '#fff'}}>🏃 しりとりハント</Link>
         <Link to="/feedback" style={{...homeButtonStyle, backgroundColor: '#8c7b75', color: '#fff'}}>📝 感想掲示板＆バトン</Link>
         <Link to="/settings" style={{...homeButtonStyle, backgroundColor: '#666', color: '#fff', fontSize: '0.9rem'}}>⚙ 設定</Link>
-        <Link to="/pair-quiz" style={{...homeButtonStyle, backgroundColor: '#FF7043', color: '#fff'}}>🤝 ペアdeクイズ</Link>
       </div>
     </div>
   );
